@@ -74,9 +74,10 @@ def upscale_image(image, scale_factor=2):
     
     return upscaled
 
+# Minimal health check route for Render
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return 'Hello, Render! If you see this, the app is running.'
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
