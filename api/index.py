@@ -7,7 +7,7 @@ import io
 import cv2
 import numpy as np
 
-# Update for Vercel: set static and template folders
+# Set static and template folders for root-level folders
 app = Flask(__name__, static_folder='../static', template_folder='../templates')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 app.config['UPLOAD_FOLDER'] = 'uploads'
@@ -74,10 +74,9 @@ def upscale_image(image, scale_factor=2):
     
     return upscaled
 
-# Minimal health check route for Render
 @app.route('/')
 def index():
-    return 'Hello, Render! If you see this, the app is running.'
+    return render_template('index.html')
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -107,8 +106,9 @@ def upload_file():
             download_name='removed_background.png'
         )
     
-    return jsonify({'error': 'Invalid file type'}), 400 
+    return jsonify({'error': 'Invalid file type'}), 400
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
+    print(f"[DEBUG] Starting Flask app on port {port}")
     app.run(host="0.0.0.0", port=port) 
