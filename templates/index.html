@@ -3,334 +3,547 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CLEARCUT</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <title>ClearCut</title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
     <style>
-        .drop-zone {
-            border: 2px dashed var(--tw-border-opacity, 1) #4a5568;
-            transition: all 0.3s ease;
+        :root {
+            --bg: #f7f7f8;
+            --card: #fff;
+            --text: #222;
+            --subtext: #555;
+            --accent: #2563eb;
+            --footer: #222;
+            --footer-text: #fff;
         }
-        .drop-zone.dragover {
-            border-color: #4299e1;
-            background-color: #ebf8ff;
+        body.night {
+            --bg: #18181b;
+            --card: #23232a;
+            --text: #f3f4f6;
+            --subtext: #a1a1aa;
+            --accent: #60a5fa;
+            --footer: #18181b;
+            --footer-text: #a1a1aa;
         }
-        .loading {
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            transition: background 0.3s, color 0.3s;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 2rem 1rem 2rem;
+            background: var(--card);
+            box-shadow: 0 2px 8px 0 rgba(0,0,0,0.04);
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .brand svg {
+            margin-right: 0.5rem;
+            color: var(--accent);
+        }
+        .credit {
+            font-size: 1rem;
+            color: var(--subtext);
+        }
+        .credit a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .toggle {
+            display: flex;
+            align-items: center;
+            margin-left: 1.5rem;
+            gap: 0.5rem;
+        }
+        .toggle input[type="checkbox"] {
             display: none;
         }
-        .loading.active {
-            display: flex;
+        .toggle-label {
+            background: #ccc;
+            border-radius: 999px;
+            width: 48px;
+            height: 24px;
+            position: relative;
+            cursor: pointer;
+            margin: 0 0.5rem;
+            transition: background 0.3s;
         }
-        .progress-bar {
-            width: 100%;
-            height: 4px;
-            background-color: #e2e8f0;
-            border-radius: 2px;
+        .toggle-label .dot {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border-radius: 50%;
+            transition: left 0.3s, background 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             overflow: hidden;
         }
-        .progress-bar-fill {
-            height: 100%;
-            background-color: #4299e1;
-            transition: width 0.3s ease;
+        .toggle-icon {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.3;
+            transform: scale(0.7);
+            transition: opacity 0.3s, transform 0.3s;
         }
-        html.dark {
-            background: #18181b;
+        .toggle-icon.sun {
+            color: #facc15;
         }
-        body.dark {
-            background: #18181b;
+        .toggle-icon.moon {
+            color: #60a5fa;
         }
-        /* Night mode for card and dropzone */
-        .dark .bg-white {
-            background-color: #23232a !important;
+        body:not(.night) .toggle-icon.sun {
+            opacity: 1;
+            transform: scale(1.2);
         }
-        .dark .bg-gray-50 {
-            background-color: #23232a !important;
+        body:not(.night) .toggle-icon.moon {
+            opacity: 0;
+            transform: scale(0.7);
         }
-        .dark .border-gray-300 {
-            border-color: #444456 !important;
+        body.night .toggle-icon.sun {
+            opacity: 0;
+            transform: scale(0.7);
         }
-        .dark .shadow-2xl {
-            box-shadow: 0 8px 32px 0 rgba(0,0,0,0.7);
+        body.night .toggle-icon.moon {
+            opacity: 1;
+            transform: scale(1.2);
         }
-        .dark .text-gray-800, .dark .text-gray-700 {
-            color: #f3f4f6 !important;
+        input[type="checkbox"]:checked + .toggle-label .dot {
+            left: 26px;
+            background: var(--accent);
         }
-        .dark .text-gray-600 {
-            color: #d1d5db !important;
+        main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 70vh;
+            padding: 2rem;
         }
-        .dark .text-gray-500 {
-            color: #a1a1aa !important;
+        .card {
+            background: var(--card);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px 0 rgba(0,0,0,0.07);
+            padding: 2.5rem 2rem;
+            max-width: 800px;
+            width: 100%;
+            margin: 2rem 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: background 0.3s;
         }
-        .dark .bg-blue-500 {
-            background-color: #2563eb !important;
+        .drop-zone {
+            border: 2px dashed #bdbdbd;
+            border-radius: 18px;
+            background: var(--bg);
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.3s, background 0.3s;
+            margin-bottom: 1.5rem;
+            width: 100%;
+            position: relative;
+            min-height: 220px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
-        .dark .hover\:bg-blue-600:hover {
-            background-color: #1d4ed8 !important;
+        .drop-zone-processing {
+            justify-content: center;
+            align-items: center;
         }
-        .dark .bg-green-500 {
-            background-color: #22c55e !important;
+        .drop-zone-content { display: block; }
+        .drop-zone-processing-content { display: none; }
+        .drop-zone.processing .drop-zone-content { display: none; }
+        .drop-zone.processing .drop-zone-processing-content { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; }
+        .drop-zone.dragover {
+            border-color: var(--accent);
+            background: #e0e7ff;
         }
-        .dark .hover\:bg-green-600:hover {
-            background-color: #16a34a !important;
+        .drop-zone svg {
+            width: 48px;
+            height: 48px;
+            color: #bdbdbd;
+            margin-bottom: 1rem;
         }
-        .dark .bg-gray-900 {
-            background-color: #18181b !important;
+        .drop-zone p {
+            margin: 0.5rem 0;
+            color: var(--subtext);
+            font-size: 1.1rem;
         }
-        .dark .rounded-2xl, .dark .rounded-xl, .dark .rounded-lg {
-            box-shadow: 0 2px 8px 0 rgba(0,0,0,0.5);
+        .browse-btn {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 0.7rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: background 0.2s;
         }
-        .dark .shadow-md {
-            box-shadow: 0 2px 8px 0 rgba(0,0,0,0.5);
+        .browse-btn:hover {
+            background: #1d4ed8;
         }
-        .dark .focus\:ring-blue-500:focus {
-            box-shadow: 0 0 0 2px #2563eb;
+        .download-btn {
+            background: #22c55e;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 0.7rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: background 0.2s;
+            display: none;
         }
-        .dark .focus\:ring-green-500:focus {
-            box-shadow: 0 0 0 2px #22c55e;
+        .download-btn:hover {
+            background: #16a34a;
+        }
+        footer {
+            background: var(--footer);
+            color: var(--footer-text);
+            text-align: center;
+            padding: 1.5rem 0 1rem 0;
+            font-size: 1rem;
+            margin-top: 2rem;
+        }
+        @media (max-width: 600px) {
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 1rem 0.5rem 0.5rem 0.5rem;
+            }
+            .brand {
+                font-size: 1.3rem;
+                margin-bottom: 0.5rem;
+            }
+            .credit {
+                font-size: 0.95rem;
+            }
+            .toggle {
+                margin-left: 0;
+                margin-top: 0.5rem;
+            }
+            .card {
+                padding: 1.2rem 0.3rem;
+                max-width: 100%;
+                border-radius: 14px;
+            }
+            .drop-zone {
+                padding: 1.2rem 0.3rem;
+            }
+            .comparison {
+                flex-direction: column;
+                gap: 0.5rem;
+                margin-top: 0.7rem;
+            }
+            .comparison-item img {
+                max-width: 95vw;
+                margin: 0 auto;
+            }
+            .download-btn {
+                width: 100%;
+                font-size: 1.05rem;
+            }
+        }
+        .comparison {
+            display: flex;
+            gap: 1rem;
+            width: 100%;
+            margin-top: 1rem;
+            display: none;
+        }
+        .comparison-item {
+            flex: 1;
+            text-align: center;
+        }
+        .comparison-item img {
+            max-width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+        .comparison-item p {
+            margin: 0.5rem 0;
+            color: var(--subtext);
+            font-size: 0.9rem;
+        }
+        .hourglass-loader {
+            width: 64px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 1.5rem auto 1rem auto;
+        }
+        .hourglass-svg {
+            width: 64px;
+            height: 64px;
+            display: block;
+        }
+        .hourglass-outline {
+            stroke: #fff;
+            stroke-width: 3;
+            fill: none;
+        }
+        .hourglass-sand {
+            stroke: #fff;
+            stroke-width: 3;
+            fill: none;
+            stroke-linecap: round;
+            animation: sand-flow 1.2s linear infinite alternate;
+        }
+        @keyframes sand-flow {
+            0% { stroke-dasharray: 0 40; }
+            100% { stroke-dasharray: 20 20; }
+        }
+        .hourglass-spin {
+            animation: hourglass-spin 1.2s linear infinite;
+            transform-origin: 50% 50%;
+        }
+        @keyframes hourglass-spin {
+            100% { transform: rotate(180deg); }
+        }
+        .progress-percentage {
+            text-align: center;
+            color: var(--subtext);
+            font-size: 1.1rem;
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+            min-height: 1.5em;
         }
     </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 min-h-screen transition-colors duration-300">
-    <div class="w-full flex flex-col sm:flex-row sm:justify-between sm:items-center py-4 px-4 sm:px-6 bg-white dark:bg-gray-800 shadow-md sticky top-0 z-10 gap-2 sm:gap-0">
-        <div class="flex items-center space-x-2 justify-center sm:justify-start">
-            <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+<body>
+    <header>
+        <span class="brand">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M16 4L28 28H4L16 4Z" fill="#18181b" stroke="white" stroke-width="3"/>
+                <path d="M16 7L25 26H7L16 7Z" fill="none" stroke="white" stroke-width="1"/>
             </svg>
-            <span class="text-3xl font-extrabold tracking-widest text-gray-800 dark:text-gray-100">CLEARCUT</span>
-        </div>
-        <div class="flex flex-col sm:flex-row items-center sm:space-x-4 space-y-1 sm:space-y-0 justify-center sm:justify-end">
-            <span class="text-xs sm:text-sm text-gray-600 dark:text-gray-300 font-semibold text-center sm:text-right">Created by <span class="text-blue-500">Lalit Shirsath</span></span>
-            <label class="flex items-center cursor-pointer select-none mt-1 sm:mt-0">
-                <span class="mr-2 text-gray-700 dark:text-gray-300 text-xs">Day</span>
-                <div class="relative">
-                    <input id="theme-toggle" type="checkbox" class="sr-only">
-                    <div class="block bg-gray-400 w-12 h-6 rounded-full"></div>
-                    <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition transform"></div>
-                </div>
-                <span class="ml-2 text-gray-700 dark:text-gray-300 text-xs">Night</span>
-            </label>
-        </div>
-    </div>
-    <div class="container mx-auto px-2 sm:px-4 py-8">
-        <div class="max-w-2xl mx-auto">
-            <div class="flex flex-col items-center mb-8">
-                <span class="text-3xl sm:text-4xl font-extrabold tracking-widest text-blue-500 mb-2">CLEARCUT</span>
-                <span class="text-base sm:text-lg text-gray-500 dark:text-gray-300 font-medium tracking-wide text-center">AI Background Remover</span>
+            ClearCut
+        </span>
+        <div style="display: flex; align-items: center;">
+            <span class="credit">Created by <a href="#">Lalit Shirsath</a></span>
+            <div class="toggle">
+                <svg class="toggle-icon sun" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2"><circle cx="16" cy="16" r="7"/><g><line x1="16" y1="3" x2="16" y2="7"/><line x1="16" y1="25" x2="16" y2="29"/><line x1="3" y1="16" x2="7" y2="16"/><line x1="25" y1="16" x2="29" y2="16"/><line x1="7.8" y1="7.8" x2="10.6" y2="10.6"/><line x1="21.4" y1="21.4" x2="24.2" y2="24.2"/><line x1="7.8" y1="24.2" x2="10.6" y2="21.4"/><line x1="21.4" y1="10.6" x2="24.2" y2="7.8"/></g></svg>
+                <input type="checkbox" id="theme-toggle">
+                <label class="toggle-label" for="theme-toggle">
+                    <span class="dot"></span>
+                </label>
+                <svg class="toggle-icon moon" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2"><path d="M28 20.5A12 12 0 1 1 15.5 4a9.5 9.5 0 1 0 12.5 16.5z"/></svg>
             </div>
-            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-4 sm:p-8 transition-colors duration-300">
-                <div id="drop-zone" class="drop-zone rounded-2xl p-6 sm:p-10 text-center cursor-pointer bg-gray-50 dark:bg-gray-900 border-gray-300 dark:border-gray-700 border-2 border-dashed hover:shadow-lg transition-all duration-300">
-                    <div class="space-y-4">
-                        <svg class="mx-auto h-12 w-12 sm:h-14 sm:w-14 text-gray-400 dark:text-gray-500" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
-                        <div class="text-gray-600 dark:text-gray-300">
-                            <p class="text-base sm:text-lg font-semibold">Drag and drop your image here</p>
-                            <p class="text-xs sm:text-sm">or</p>
-                            <button id="browse-button" class="mt-2 px-4 sm:px-5 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-all duration-200 text-sm sm:text-base">
-                                Browse Files
-                            </button>
-                        </div>
-                        <input type="file" id="file-input" class="hidden" accept="image/*">
-                    </div>
-                </div>
-                <div id="loading" class="loading flex-col items-center justify-center mt-6 space-y-4">
-                    <div class="w-full max-w-md">
-                        <div class="progress-bar">
-                            <div id="progress-bar-fill" class="progress-bar-fill" style="width: 0%"></div>
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                        <span class="text-gray-600 dark:text-gray-300">Processing image...</span>
-                    </div>
-                    <div id="time-estimate" class="text-sm text-gray-500 dark:text-gray-400"></div>
-                </div>
-                <div id="preview" class="mt-6 hidden">
-                    <div class="flex flex-col items-center space-y-6">
-                        <div class="flex flex-col sm:flex-row justify-center items-center sm:space-x-8 space-y-4 sm:space-y-0 w-full">
-                            <div class="text-center w-full sm:w-auto">
-                                <h3 class="text-sm font-medium text-gray-700 dark:text-gray-200">Original</h3>
-                                <img id="original-preview" class="mt-2 max-h-48 sm:max-h-56 rounded-xl shadow-md mx-auto" src="" alt="Original image">
-                            </div>
-                            <div class="text-center w-full sm:w-auto">
-                                <h3 class="text-sm font-medium text-gray-700 dark:text-gray-200">Processed</h3>
-                                <div class="relative mt-2 max-h-48 sm:max-h-56 flex items-center justify-center">
-                                    <div id="processed-spinner" class="absolute inset-0 flex items-center justify-center">
-                                        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
-                                    </div>
-                                    <img id="processed-preview" class="max-h-48 sm:max-h-56 rounded-xl shadow-md hidden mx-auto" src="" alt="Processed image">
-                                </div>
-                            </div>
-                        </div>
-                        <div id="download-section" class="hidden w-full flex justify-center">
-                            <button id="download-button" class="w-full sm:w-auto px-4 sm:px-7 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 flex items-center justify-center space-x-2 transition-all duration-200 text-sm sm:text-base">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                                </svg>
-                                <span>Download Processed Image</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <footer class="mt-10 text-center text-gray-500 dark:text-gray-400 text-xs px-2 pb-4">
-                &copy; 2025 <span class="text-blue-500 font-extrabold tracking-widest">CLEARCUT</span> by <span class="font-semibold">Lalit Shirsath</span>. All rights reserved.
-            </footer>
         </div>
+    </header>
+    <main>
+        <div class="card">
+            <div id="hourglass-processing" style="display:none; margin-bottom: 1.5rem;"><div class="hourglass-loader">
+                <svg class="hourglass-svg" viewBox="0 0 64 64">
+                    <g class="hourglass-spin">
+                        <path class="hourglass-outline" d="M16 8h32M16 56h32M20 8c0 16 24 16 24 0M20 56c0-16 24-16 24 0"/>
+                        <line class="hourglass-sand" x1="32" y1="24" x2="32" y2="40" />
+                    </g>
+                </svg>
+            </div>
+            <div class="progress-percentage" id="progress-percentage"></div>
+        </div>
+        <div id="drop-zone" class="drop-zone">
+            <div class="drop-zone-content">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 48 48"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <p>Drag and drop your image here</p>
+                <p>or</p>
+                <button class="browse-btn" id="browse-btn">Browse Files</button>
+                <input type="file" id="file-input" accept="image/*" style="display:none;">
+            </div>
+            <div class="drop-zone-processing-content">
+                <div class="hourglass-loader">
+                    <svg class="hourglass-svg" viewBox="0 0 64 64">
+                        <g class="hourglass-spin">
+                            <path class="hourglass-outline" d="M16 8h32M16 56h32M20 8c0 16 24 16 24 0M20 56c0-16 24-16 24 0"/>
+                            <line class="hourglass-sand" x1="32" y1="24" x2="32" y2="40" />
+                        </g>
+                    </svg>
+                </div>
+                <div class="progress-percentage" id="progress-percentage"></div>
+            </div>
+        </div>
+        <div id="comparison" class="comparison">
+            <div class="comparison-item">
+                <img id="original" alt="Original image">
+                <p>Original</p>
+            </div>
+            <div class="comparison-item">
+                <img id="result" alt="Processed image">
+                <p>Processed</p>
+            </div>
+        </div>
+        <button id="download-btn" class="download-btn">Download HD Image</button>
     </div>
-    <script>
-        // Theme toggle logic
-        const themeToggle = document.getElementById('theme-toggle');
-        const html = document.documentElement;
-        const body = document.body;
-        function setTheme(dark) {
-            if (dark) {
-                html.classList.add('dark');
-                body.classList.add('dark');
-                localStorage.setItem('theme', 'dark');
-                document.querySelector('.dot').style.transform = 'translateX(24px)';
-            } else {
-                html.classList.remove('dark');
-                body.classList.remove('dark');
-                localStorage.setItem('theme', 'light');
-                document.querySelector('.dot').style.transform = 'translateX(0)';
-            }
-        }
-        // On load, set theme from localStorage
-        if (localStorage.getItem('theme') === 'dark') {
-            themeToggle.checked = true;
-            setTheme(true);
-        } else {
-            themeToggle.checked = false;
-            setTheme(false);
-        }
-        themeToggle.addEventListener('change', (e) => {
-            setTheme(e.target.checked);
-        });
+</main>
+<footer>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+        <div style="display: flex; gap: 1.2rem; margin-bottom: 0.3rem;">
+            <a href="https://www.linkedin.com/in/lalit-shirsath-2a6526310/" target="_blank" title="LinkedIn" style="display:inline-block;">
+                <svg width="26" height="26" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M7 10v4m0 0v4m0-4h.01M17 14v-2a2 2 0 0 0-2-2h-1a2 2 0 0 0-2 2v2m0 0v4m0-4h.01"/></svg>
+            </a>
+            <a href="https://www.instagram.com/_lalitz/" target="_blank" title="Instagram" style="display:inline-block;">
+                <svg width="26" height="26" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17" cy="7" r="1.5"/></svg>
+            </a>
+            <a href="mailto:lalitshirsath008@gmail.com" target="_blank" title="Email" style="display:inline-block;">
+                <svg width="26" height="26" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="4"/><path d="M2 6l10 7l10-7"/></svg>
+            </a>
+            <a href="https://github.com/lalitshirsath008/" target="_blank" title="GitHub" style="display:inline-block;">
+                <svg width="26" height="26" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.5c.5.09.66-.22.66-.48c0-.24-.01-.87-.01-1.7c-2.78.6-3.37-1.34-3.37-1.34c-.45-1.15-1.11-1.46-1.11-1.46c-.91-.62.07-.61.07-.61c1.01.07 1.54 1.04 1.54 1.04c.89 1.53 2.34 1.09 2.91.83c.09-.65.35-1.09.63-1.34c-2.22-.25-4.56-1.11-4.56-4.95c0-1.09.39-1.98 1.03-2.68c-.1-.25-.45-1.27.1-2.65c0 0 .84-.27 2.75 1.02A9.56 9.56 0 0 1 12 6.8c.85.004 1.71.115 2.51.337c1.91-1.29 2.75-1.02 2.75-1.02c.55 1.38.2 2.4.1 2.65c.64.7 1.03 1.59 1.03 2.68c0 3.85-2.34 4.7-4.57 4.95c.36.31.68.92.68 1.85c0 1.34-.01 2.42-.01 2.75c0 .27.16.58.67.48A10.01 10.01 0 0 0 22 12c0-5.52-4.48-10-10-10z"/></svg>
+            </a>
+            <a href="https://lalitshirsath008.github.io/lalit-shirsath-portfolio/" target="_blank" title="Portfolio" style="display:inline-block;">
+                <svg width="26" height="26" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M16 3v4M8 3v4"/><path d="M3 11h18"/></svg>
+            </a>
+        </div>
+        <span style="font-size:0.95rem;">&copy; 2024 Created by <a href="https://www.linkedin.com/in/lalit-shirsath-2a6526310/" style="color:#60a5fa;">Lalit Shirsath</a>. All rights reserved.</span>
+    </div>
+</footer>
+<script>
+    // Day/Night mode
+    const themeToggle = document.getElementById('theme-toggle');
+    function setTheme(night) {
+        document.body.classList.toggle('night', night);
+        localStorage.setItem('theme', night ? 'night' : 'day');
+    }
+    themeToggle.checked = localStorage.getItem('theme') === 'night';
+    setTheme(themeToggle.checked);
+    themeToggle.addEventListener('change', e => setTheme(e.target.checked));
 
-        // Dropzone and upload logic
-        const dropZone = document.getElementById('drop-zone');
-        const fileInput = document.getElementById('file-input');
-        const browseButton = document.getElementById('browse-button');
-        const loading = document.getElementById('loading');
-        const preview = document.getElementById('preview');
-        const originalPreview = document.getElementById('original-preview');
-        const processedPreview = document.getElementById('processed-preview');
-        const progressBarFill = document.getElementById('progress-bar-fill');
-        const timeEstimate = document.getElementById('time-estimate');
-        const downloadButton = document.getElementById('download-button');
-        const downloadSection = document.getElementById('download-section');
-        let processedImageUrl = null;
+    // Drag and drop
+    const dropZone = document.getElementById('drop-zone');
+    const dropZoneContent = dropZone.querySelector('.drop-zone-content');
+    const dropZoneProcessingContent = dropZone.querySelector('.drop-zone-processing-content');
+    const fileInput = document.getElementById('file-input');
+    const browseBtn = document.getElementById('browse-btn');
+    const resultImg = document.getElementById('result');
+    const originalImg = document.getElementById('original');
+    const comparison = document.getElementById('comparison');
+    const downloadBtn = document.getElementById('download-btn');
+    const hourglassProcessing = document.getElementById('hourglass-processing');
+    const progressPercentage = document.getElementById('progress-percentage');
 
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, preventDefaults, false);
-            document.body.addEventListener(eventName, preventDefaults, false);
-        });
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropZone.addEventListener(eventName, highlight, false);
-        });
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, unhighlight, false);
-        });
-        dropZone.addEventListener('drop', handleDrop, false);
-        fileInput.addEventListener('change', handleFiles, false);
-        browseButton.addEventListener('click', () => fileInput.click());
-        downloadButton.addEventListener('click', () => {
-            if (processedImageUrl) {
-                const link = document.createElement('a');
-                link.href = processedImageUrl;
-                link.download = 'removed_background.png';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            }
-        });
-        function preventDefaults (e) {
+    ['dragenter', 'dragover'].forEach(event => {
+        dropZone.addEventListener(event, e => {
             e.preventDefault();
-            e.stopPropagation();
-        }
-        function highlight(e) {
             dropZone.classList.add('dragover');
-        }
-        function unhighlight(e) {
+        });
+    });
+    ['dragleave', 'drop'].forEach(event => {
+        dropZone.addEventListener(event, e => {
+            e.preventDefault();
             dropZone.classList.remove('dragover');
-        }
-        function handleDrop(e) {
-            const dt = e.dataTransfer;
-            const files = dt.files;
-            handleFiles({ target: { files: files } });
-        }
-        function handleFiles(e) {
-            const file = e.target.files[0];
-            if (file && file.type.startsWith('image/')) {
-                uploadFile(file);
+        });
+    });
+    dropZone.addEventListener('drop', e => {
+        const files = e.dataTransfer.files;
+        if (files.length) handleFile(files[0]);
+    });
+    browseBtn.onclick = () => fileInput.click();
+    fileInput.onchange = () => {
+        if (fileInput.files.length) handleFile(fileInput.files[0]);
+    };
+
+    async function handleFile(file) {
+        if (!file.type.startsWith('image/')) return alert('Please select an image file!');
+        // Show original image
+        originalImg.src = URL.createObjectURL(file);
+        comparison.style.display = 'flex';
+        resultImg.style.display = 'none';
+        downloadBtn.style.display = 'none';
+        // Show hourglass and percentage inside drop zone
+        dropZone.classList.add('processing');
+        let uploadPercent = 0;
+        let processingInterval = null;
+        progressPercentage.textContent = 'Uploading... 0%';
+
+        // Upload with progress
+        const formData = new FormData();
+        formData.append('file', file);
+        let xhr = new XMLHttpRequest();
+        xhr.open('POST', '/upload', true);
+        xhr.upload.onprogress = function(e) {
+            if (e.lengthComputable) {
+                uploadPercent = Math.round((e.loaded / e.total) * 80); // up to 80% for upload
+                progressPercentage.textContent = `Uploading... ${uploadPercent}%`;
             }
-        }
-        function updateProgress(progress) {
-            progressBarFill.style.width = `${progress}%`;
-            if (progress < 30) {
-                timeEstimate.textContent = 'Analyzing image...';
-            } else if (progress < 60) {
-                timeEstimate.textContent = 'Removing background...';
-            } else if (progress < 90) {
-                timeEstimate.textContent = 'Finalizing...';
-            } else {
-                timeEstimate.textContent = 'Almost done...';
-            }
-        }
-        function uploadFile(file) {
-            const formData = new FormData();
-            formData.append('file', file);
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                originalPreview.src = e.target.result;
-                preview.classList.remove('hidden');
-            }
-            reader.readAsDataURL(file);
-            loading.classList.add('active');
-            progressBarFill.style.width = '0%';
-            timeEstimate.textContent = 'Starting process...';
-            downloadSection.classList.add('hidden');
-            let progress = 0;
-            const progressInterval = setInterval(() => {
-                progress += 5;
-                if (progress <= 95) {
-                    updateProgress(progress);
+        };
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                if (processingInterval) clearInterval(processingInterval);
+                progressPercentage.textContent = 'Processing... 100%';
+                if (xhr.status === 200) {
+                    const blob = xhr.response;
+                    resultImg.src = URL.createObjectURL(blob);
+                    resultImg.style.display = 'block';
+                    downloadBtn.style.display = 'block';
+                    dropZone.classList.remove('processing');
+                    dropZoneContent.style.display = 'block';
+                    dropZoneProcessingContent.style.display = 'none';
+                    dropZone.innerHTML = `<svg fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 48 48\"><path d=\"M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg><p>Drag and drop your image here</p><p>or</p><button class=\"browse-btn\" id=\"browse-btn\">Browse Files</button><input type=\"file\" id=\"file-input\" accept=\"image/*\" style=\"display:none;\">`;
+                    document.getElementById('browse-btn').onclick = () => fileInput.click();
+                    document.getElementById('file-input').onchange = () => {
+                        if (fileInput.files.length) handleFile(fileInput.files[0]);
+                    };
+                } else {
+                    alert('Error processing image!');
+                    dropZone.classList.remove('processing');
+                    dropZoneContent.style.display = 'block';
+                    dropZoneProcessingContent.style.display = 'none';
+                    dropZone.innerHTML = `<svg fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 48 48\"><path d=\"M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg><p>Drag and drop your image here</p><p>or</p><button class=\"browse-btn\" id=\"browse-btn\">Browse Files</button><input type=\"file\" id=\"file-input\" accept=\"image/*\" style=\"display:none;\">`;
+                    document.getElementById('browse-btn').onclick = () => fileInput.click();
+                    document.getElementById('file-input').onchange = () => {
+                        if (fileInput.files.length) handleFile(fileInput.files[0]);
+                    };
                 }
-            }, 200);
-            fetch('/upload', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.blob();
-            })
-            .then(blob => {
-                clearInterval(progressInterval);
-                updateProgress(100);
-                processedImageUrl = URL.createObjectURL(blob);
-                processedPreview.onload = function() {
-                    document.getElementById('processed-spinner').style.display = 'none';
-                    processedPreview.classList.remove('hidden');
-                };
-                processedPreview.src = processedImageUrl;
-                setTimeout(() => {
-                    loading.classList.remove('active');
-                    downloadSection.classList.remove('hidden');
-                }, 500);
-            })
-            .catch(error => {
-                clearInterval(progressInterval);
-                console.error('Error:', error);
-                loading.classList.remove('active');
-                document.getElementById('processed-spinner').style.display = 'none';
-                processedPreview.classList.add('hidden');
-                alert('An error occurred while processing the image. Please try again.');
-            });
-        }
-    </script>
+            } else if (xhr.readyState === 2 || xhr.readyState === 3) {
+                // Start animating processing percent from uploadPercent to 100%
+                let current = uploadPercent;
+                if (processingInterval) clearInterval(processingInterval);
+                processingInterval = setInterval(() => {
+                    if (current < 99) {
+                        current++;
+                        progressPercentage.textContent = `Processing... ${current}%`;
+                    }
+                }, 20);
+            }
+        };
+        xhr.responseType = 'blob';
+        xhr.send(formData);
+    }
+
+    // Download button
+    downloadBtn.addEventListener('click', () => {
+        const link = document.createElement('a');
+        link.href = resultImg.src;
+        link.download = 'clearcut-processed.png';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+</script>
 </body>
 </html> 

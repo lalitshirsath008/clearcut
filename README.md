@@ -1,58 +1,73 @@
-# Background Remover Web Application
+# Background Remover
 
-A web application that allows users to remove backgrounds from images with a simple drag-and-drop interface. The application uses the `rembg` library for automatic background removal and provides a modern, user-friendly interface.
+A beautiful web application that removes backgrounds from images using AI. Built with Flask and rembg.
 
 ## Features
 
 - Drag and drop image upload
-- Support for multiple image formats (PNG, JPG, JPEG, GIF, BMP, WEBP)
-- Automatic background removal
-- Real-time preview of original and processed images
-- HD PNG output
-- Modern, responsive UI
+- Day/Night mode
+- Mobile responsive design
+- Real-time background removal
+- Beautiful UI/UX
 
-## Requirements
+## Local Development
 
-- Python 3.7 or higher
-- pip (Python package installer)
+1. Clone the repository
+2. Create a virtual environment:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. Run the application:
+   ```bash
+   python app.py
+   ```
+5. Open http://localhost:5000 in your browser
 
-## Installation
+## Deployment on Render
 
-1. Clone this repository or download the source code.
+1. Create a new Web Service on Render
+2. Connect your GitHub repository
+3. Use these settings:
+   - **Build Command:** `pip install -r requirements.txt`
+   - **Start Command:** `gunicorn app:app`
+   - **Python Version:** 3.9 or higher
 
-2. Create a virtual environment (recommended):
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+## Production Deployment (Render/Waitress)
+
+To deploy on Render using Waitress:
+
+1. Make sure `waitress` is in your requirements.txt (already included).
+2. Set the Render start command to:
+
+```
+waitress-serve --port=10000 app:app
 ```
 
-3. Install the required packages:
-```bash
-pip install -r requirements.txt
+This will serve your Flask app using Waitress on the port required by Render.
+
+## Project Structure
+
+```
+.
+├── app.py              # Main Flask application
+├── requirements.txt    # Python dependencies
+├── templates/         # HTML templates
+│   └── index.html    # Main page template
+└── README.md         # This file
 ```
 
-## Usage
+## Technologies Used
 
-1. Start the application:
-```bash
-python app.py
-```
-
-2. Open your web browser and navigate to `http://localhost:5000`
-
-3. Drag and drop an image onto the upload area or click "Browse Files" to select an image
-
-4. Wait for the processing to complete
-
-5. The processed image will be displayed and automatically downloaded as a PNG file
-
-## Notes
-
-- Maximum file size: 16MB
-- The application automatically detects the main subject in the image
-- Output is always in PNG format with transparency
-- Processing time may vary depending on the image size and complexity
+- Flask - Web framework
+- rembg - Background removal
+- HTML/CSS/JavaScript - Frontend
+- Gunicorn - Production server
 
 ## License
 
-This project is open source and available under the MIT License. 
+MIT License 
