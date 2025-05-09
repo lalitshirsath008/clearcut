@@ -1,9 +1,0 @@
-services:
-  - type: web
-    name: clearcut-bg-remover
-    env: python
-    buildCommand: ""
-    startCommand: waitress-serve --port=$PORT app:app
-    envVars:
-      - key: PORT
-        value: 10000
