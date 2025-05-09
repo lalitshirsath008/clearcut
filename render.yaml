@@ -1,8 +1,9 @@
 services:
   - type: web
-    name: clearcut
+    name: clearcut-bg-remover
     env: python
-    plan: free
     buildCommand: ""
     startCommand: waitress-serve --port=$PORT app:app
-    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 10000
