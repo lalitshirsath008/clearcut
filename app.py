@@ -44,6 +44,6 @@ def remove_bg():
 if __name__ == '__main__':
     import os
     from waitress import serve
-    port = int(os.environ.get('PORT', 5000))
+    port = int(os.environ.get('PORT', 10000))
     print(f"Starting Waitress on port {port}...")
     serve(app, host='0.0.0.0', port=port) 
